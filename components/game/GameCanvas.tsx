@@ -1,5 +1,7 @@
 'use client';
 
+
+import TrueFocus from './ui/TrueFocus';
 import { UserButton } from '@clerk/nextjs';
 import { useEffect, useRef, useState } from 'react';
 import { createBird, updateBird, jumpBird } from './logic/bird';
@@ -15,7 +17,6 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   PIPE_WIDTH,
-  PIPE_GAP,
   WIN_SCORE,
 } from './logic/constants';
 
@@ -39,21 +40,12 @@ export default function GameCanvas() {
   const { user } = useUser();
   const animationRef = useRef<number | null>(null);
   const mascotImgRef = useRef<HTMLImageElement | null>(null);
-  const tuboImgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const img = new Image();
     img.src = '/mastk.png';
     img.onload = () => {
       mascotImgRef.current = img;
-    };
-  }, []);
-
-  useEffect(() => {
-    const tubo = new Image();
-    tubo.src = '/tubo.png';
-    tubo.onload = () => {
-      tuboImgRef.current = tubo;
     };
   }, []);
 
@@ -92,36 +84,17 @@ export default function GameCanvas() {
         }
       };
 
-      const drawPipe = (pipe: Pipe) => {
-        const tubo = tuboImgRef.current;
-        const tuboHeight = 150;
-        if (tubo) {
-          // Topo (espelhado)
-          ctx.save();
-          ctx.translate(pipe.x + PIPE_WIDTH / 2, pipe.height);
-          ctx.scale(1, -1);
-          ctx.drawImage(tubo, -PIPE_WIDTH / 2, 0, PIPE_WIDTH, tuboHeight);
-          ctx.restore();
-          // Base
-          ctx.drawImage(tubo, pipe.x, pipe.height + PIPE_GAP, PIPE_WIDTH, tuboHeight);
-        } else {
-          // Fallback (retângulos verdes)
-          ctx.fillStyle = '#22c55e';
-          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
-          ctx.fillRect(pipe.x, pipe.height + PIPE_GAP, PIPE_WIDTH, CANVAS_HEIGHT);
-        }
-      };
-
       if (!isRunning) {
         drawBird();
 
         pipes.current.forEach((pipe) => {
-          drawPipe(pipe);
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
+          ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
         });
 
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 28px Arial';
-        ctx.fillText(`Pontos Tekbond: ${score}`, 40, 60);
 
         animationRef.current = requestAnimationFrame(gameLoop);
         return;
@@ -132,7 +105,9 @@ export default function GameCanvas() {
 
       pipes.current = movePipes(pipes.current);
       pipes.current.forEach((pipe) => {
-        drawPipe(pipe);
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
+        ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
 
         if (shouldScore(pipe, bird.current.x)) {
           pipe.scored = true;
@@ -143,8 +118,7 @@ export default function GameCanvas() {
           return;
         }
 
-        if (checkCollision(bird.current, pipe)) {
-          setFinalMessage('💥 Você perdeu!');
+        if (checkCollision(bird.current, pipe)) {          setFinalMessage('💥 Você perdeu!');
           setIsRunning(false);
           if (animationRef.current) cancelAnimationFrame(animationRef.current);
         }
@@ -177,7 +151,6 @@ export default function GameCanvas() {
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 28px Arial';
-      ctx.fillText(`Pontos Tekbond: ${score}`, 40, 60);
 
       animationRef.current = requestAnimationFrame(gameLoop);
     };
@@ -217,10 +190,23 @@ export default function GameCanvas() {
 
       <canvas ref={canvasRef} className="absolute inset-0 z-10" />
 
-      <div className="absolute top-2 right-4 z-50">
-        <UserButton afterSignOutUrl="/" />
-      </div>
 
+<div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl z-50 bg-black/70 backdrop-blur-md rounded-xl shadow-xl border border-zinc-800 px-6 py-3 flex items-center justify-between gap-4 text-white">
+  <div className="text-base font-semibold whitespace-nowrap">Pontos Tekbond: {score}</div>
+
+  <div className="flex-1 flex justify-center">
+    <TrueFocus
+      sentence="Classificados Sekai"
+      borderColor="rgb(59,130,246)"
+      glowColor="rgba(59,130,246,0.4)"
+      animationDuration={0.4}
+      pauseBetweenAnimations={0.8}
+      blurAmount={3}
+    />
+  </div>
+
+  <UserButton afterSignOutUrl="/" />
+</div>
       <Leaderboard currentScore={score} />
 
       {showInstructions && (
