@@ -82,10 +82,10 @@ const TrueFocus: React.FC<TrueFocusProps> = ({
                 return (
                     <span
                         key={index}
-                        ref={(el) => {
+                        ref={(el: HTMLSpanElement | null) => {
                             wordRefs.current[index] = el;
                           }}
-                                                  className="relative text-[3rem] font-black cursor-pointer"
+                                                                            className="relative text-[3rem] font-black cursor-pointer"
                         style={{
                             filter: manualMode
                                 ? isActive
