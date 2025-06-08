@@ -15,6 +15,7 @@ import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   PIPE_WIDTH,
+  PIPE_GAP,
   WIN_SCORE,
 } from './logic/constants';
 
@@ -38,12 +39,21 @@ export default function GameCanvas() {
   const { user } = useUser();
   const animationRef = useRef<number | null>(null);
   const mascotImgRef = useRef<HTMLImageElement | null>(null);
+  const tuboImgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const img = new Image();
     img.src = '/mastk.png';
     img.onload = () => {
       mascotImgRef.current = img;
+    };
+  }, []);
+
+  useEffect(() => {
+    const tubo = new Image();
+    tubo.src = '/tubo.png';
+    tubo.onload = () => {
+      tuboImgRef.current = tubo;
     };
   }, []);
 
@@ -82,13 +92,31 @@ export default function GameCanvas() {
         }
       };
 
+      const drawPipe = (pipe: Pipe) => {
+        const tubo = tuboImgRef.current;
+        const tuboHeight = 150;
+        if (tubo) {
+          // Topo (espelhado)
+          ctx.save();
+          ctx.translate(pipe.x + PIPE_WIDTH / 2, pipe.height);
+          ctx.scale(1, -1);
+          ctx.drawImage(tubo, -PIPE_WIDTH / 2, 0, PIPE_WIDTH, tuboHeight);
+          ctx.restore();
+          // Base
+          ctx.drawImage(tubo, pipe.x, pipe.height + PIPE_GAP, PIPE_WIDTH, tuboHeight);
+        } else {
+          // Fallback (retângulos verdes)
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
+          ctx.fillRect(pipe.x, pipe.height + PIPE_GAP, PIPE_WIDTH, CANVAS_HEIGHT);
+        }
+      };
+
       if (!isRunning) {
         drawBird();
 
         pipes.current.forEach((pipe) => {
-          ctx.fillStyle = '#22c55e';
-          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
-          ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
+          drawPipe(pipe);
         });
 
         ctx.fillStyle = '#ffffff';
@@ -104,9 +132,7 @@ export default function GameCanvas() {
 
       pipes.current = movePipes(pipes.current);
       pipes.current.forEach((pipe) => {
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
-        ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
+        drawPipe(pipe);
 
         if (shouldScore(pipe, bird.current.x)) {
           pipe.scored = true;
@@ -117,7 +143,8 @@ export default function GameCanvas() {
           return;
         }
 
-        if (checkCollision(bird.current, pipe)) {          setFinalMessage('💥 Você perdeu!');
+        if (checkCollision(bird.current, pipe)) {
+          setFinalMessage('💥 Você perdeu!');
           setIsRunning(false);
           if (animationRef.current) cancelAnimationFrame(animationRef.current);
         }
