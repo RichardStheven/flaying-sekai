@@ -49,3 +49,35 @@ body {
 .animate-glitchFade {
   animation: glitchFade 1.5s infinite;
 }
+
+
+@keyframes slowScroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -1000px 0;
+  }
+}
+
+.animate-slowScroll {
+  background-image: url('/fd1.png');
+  background-repeat: repeat-x;
+  background-size: cover;
+  animation: slowScroll 60s linear infinite;
+}
+
+@keyframes rise {
+  0% {
+    bottom: -300px;
+    opacity: 0;
+  }
+  100% {
+    bottom: 100px;
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: rise 1.5s ease-out forwards;
+}

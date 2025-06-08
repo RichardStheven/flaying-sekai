@@ -1,6 +1,6 @@
 'use client';
 
-
+import { drawPaperObstacle } from './ui/PaperObstacle';
 import TrueFocus from './ui/TrueFocus';
 import { UserButton } from '@clerk/nextjs';
 import { useEffect, useRef, useState } from 'react';
@@ -16,7 +16,6 @@ import { checkCollision, outOfBounds } from './logic/physics';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  PIPE_WIDTH,
   WIN_SCORE,
 } from './logic/constants';
 
@@ -67,7 +66,6 @@ export default function GameCanvas() {
 
       const drawBird = () => {
         const size = 96;
-
         if (mascotImgRef.current) {
           ctx.drawImage(
             mascotImgRef.current,
@@ -86,16 +84,7 @@ export default function GameCanvas() {
 
       if (!isRunning) {
         drawBird();
-
-        pipes.current.forEach((pipe) => {
-          ctx.fillStyle = '#22c55e';
-          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
-          ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
-        });
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 28px Arial';
-
+        pipes.current.forEach((pipe) => drawPaperObstacle(ctx, pipe));
         animationRef.current = requestAnimationFrame(gameLoop);
         return;
       }
@@ -105,20 +94,17 @@ export default function GameCanvas() {
 
       pipes.current = movePipes(pipes.current);
       pipes.current.forEach((pipe) => {
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.height);
-        ctx.fillRect(pipe.x, pipe.height + 180, PIPE_WIDTH, CANVAS_HEIGHT);
+        drawPaperObstacle(ctx, pipe);
 
         if (shouldScore(pipe, bird.current.x)) {
           pipe.scored = true;
           setScore((prev) => prev + 1);
         }
 
-        if (score >= WIN_SCORE || finalMessage.includes('Parabéns')) {
-          return;
-        }
+        if (score >= WIN_SCORE || finalMessage.includes('Parabéns')) return;
 
-        if (checkCollision(bird.current, pipe)) {          setFinalMessage('💥 Você perdeu!');
+        if (checkCollision(bird.current, pipe)) {
+          setFinalMessage('💥 Você perdeu!');
           setIsRunning(false);
           if (animationRef.current) cancelAnimationFrame(animationRef.current);
         }
@@ -128,15 +114,12 @@ export default function GameCanvas() {
 
       if (
         pipes.current.length === 0 ||
-        pipes.current[pipes.current.length - 1].x < canvas.width - 300
+        pipes.current[pipes.current.length - 1].x < canvas.width - 600
       ) {
         pipes.current.push(generatePipe(canvas.height));
       }
 
-      if (
-        outOfBounds(bird.current, canvas.height) &&
-        !finalMessage.includes('Parabéns')
-      ) {
+      if (outOfBounds(bird.current, canvas.height) && !finalMessage.includes('Parabéns')) {
         setFinalMessage('💥 Você perdeu!');
         setIsRunning(false);
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -148,9 +131,6 @@ export default function GameCanvas() {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         return;
       }
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 28px Arial';
 
       animationRef.current = requestAnimationFrame(gameLoop);
     };
@@ -164,17 +144,8 @@ export default function GameCanvas() {
   }, [isRunning, score, finalMessage]);
 
   useEffect(() => {
-    if (
-      !isRunning &&
-      finalMessage &&
-      user?.username &&
-      user?.phoneNumbers?.[0]?.phoneNumber
-    ) {
-      savePlayerToDatabase(
-        user.username,
-        user.phoneNumbers[0].phoneNumber,
-        score
-      );
+    if (!isRunning && finalMessage && user?.username && user?.phoneNumbers?.[0]?.phoneNumber) {
+      savePlayerToDatabase(user.username, user.phoneNumbers[0].phoneNumber, score);
     }
   }, [isRunning, finalMessage, user, score]);
 
@@ -190,32 +161,28 @@ export default function GameCanvas() {
 
       <canvas ref={canvasRef} className="absolute inset-0 z-10" />
 
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl z-50 bg-black/70 backdrop-blur-md rounded-xl shadow-xl border border-zinc-800 px-6 py-3 flex items-center justify-between gap-4 text-white">
+        <div className="text-base font-semibold whitespace-nowrap">Pontos Tekbond: {score}</div>
+        <div className="flex-1 flex justify-center">
+          <TrueFocus
+            sentence="Classificados Sekai"
+            borderColor="rgb(59,130,246)"
+            glowColor="rgba(59,130,246,0.4)"
+            animationDuration={0.4}
+            pauseBetweenAnimations={0.8}
+            blurAmount={3}
+          />
+        </div>
+        <UserButton afterSignOutUrl="/" />
+      </div>
 
-<div className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl z-50 bg-black/70 backdrop-blur-md rounded-xl shadow-xl border border-zinc-800 px-6 py-3 flex items-center justify-between gap-4 text-white">
-  <div className="text-base font-semibold whitespace-nowrap">Pontos Tekbond: {score}</div>
-
-  <div className="flex-1 flex justify-center">
-    <TrueFocus
-      sentence="Classificados Sekai"
-      borderColor="rgb(59,130,246)"
-      glowColor="rgba(59,130,246,0.4)"
-      animationDuration={0.4}
-      pauseBetweenAnimations={0.8}
-      blurAmount={3}
-    />
-  </div>
-
-  <UserButton afterSignOutUrl="/" />
-</div>
       <Leaderboard currentScore={score} />
 
       {showInstructions && (
-        <StartOverlay
-          onStart={() => {
-            setShowInstructions(false);
-            setIsRunning(true);
-          }}
-        />
+        <StartOverlay onStart={() => {
+          setShowInstructions(false);
+          setIsRunning(true);
+        }} />
       )}
 
       {!isRunning && finalMessage && !showInstructions && (
@@ -228,9 +195,7 @@ export default function GameCanvas() {
             bird.current = createBird();
             pipes.current = [];
             setFinalMessage('');
-            requestAnimationFrame(() => {
-              setIsRunning(true);
-            });
+            requestAnimationFrame(() => setIsRunning(true));
           }}
         />
       )}

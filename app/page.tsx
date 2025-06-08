@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import IntroModal from '@/components/game/IntroModal';
 import GameCanvas from '@/components/game/GameCanvas';
+import ProductScroller from '@/components/game/ui/ProductScroller'
 
 export default function PageDoJogo() {
   const [showModal, setShowModal] = useState(true);
@@ -14,6 +15,7 @@ export default function PageDoJogo() {
       {!showModal && (
         <div className="flex items-center justify-center h-screen">
           <GameCanvas />
+          <ProductScroller />
         </div>
       )}
     </div>
