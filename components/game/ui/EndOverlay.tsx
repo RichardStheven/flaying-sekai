@@ -1,7 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { FaInstagram } from 'react-icons/fa';
-import Aurora from './Aurora';
 
 interface EndOverlayProps {
   score: number;
@@ -20,27 +19,13 @@ export default function EndOverlay({ score, finalMessage, onRestart }: EndOverla
     }
   }, [score]);
 
-  const newLocal = "w-screen h-screen absolute inset-0";
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center text-white px-6">
-      {/* Fundo preto com Aurora por cima */}
-      <div className="absolute inset-0 -z-10">
-        {/* Quadrado preto ocupando a tela */}
-        <div className="w-screen h-screen bg-black absolute z-200 inset-0" />
-  
-        {/* Aurora por cima do preto */}
-        <Aurora
-          colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
-          blend={0.5}
-          amplitude={1.0}
-          speed={0.5}
-        />
-      </div>
-      {/* Conteúdo do overlay */}
+    <div className="absolute inset-0 z-20 flex items-center justify-center text-white px-6 bg-black">
+      {/* Conteúdo principal */}
       <div className="max-w-4xl w-full flex flex-col md:flex-row items-center justify-center gap-8 text-center md:text-left z-10">
         {score >= 10 ? (
           <>
-            {/* Texto lateral esquerdo */}
+            {/* Texto */}
             <div className="flex-1 space-y-3">
               <h2 className="text-2xl font-bold">{finalMessage}</h2>
               <p>
@@ -80,7 +65,7 @@ export default function EndOverlay({ score, finalMessage, onRestart }: EndOverla
               </a>
             </div>
 
-            {/* Imagem do iPhone */}
+            {/* iPhone */}
             {showIphone && (
               <div className="flex-1 flex justify-center">
                 <img
@@ -92,11 +77,11 @@ export default function EndOverlay({ score, finalMessage, onRestart }: EndOverla
             )}
           </>
         ) : (
-          <h2 className="text-2xl font-bold z-10">{finalMessage}</h2>
+          <h2 className="text-2xl font-bold">{finalMessage}</h2>
         )}
       </div>
 
-      {/* Botão de reinício */}
+      {/* Botão reiniciar */}
       <button
         onClick={onRestart}
         className="absolute bottom-16 bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-zinc-300 transition z-10"
